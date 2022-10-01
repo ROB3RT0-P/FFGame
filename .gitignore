@@ -1,2 +1,6 @@
 *.DS_Store
 mono_crash.*
+Library
+Logs
+Temp
+UserSettings
