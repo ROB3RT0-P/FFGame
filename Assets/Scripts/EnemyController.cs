@@ -22,7 +22,11 @@ public class EnemyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //transform.position = new Vector3(0,0,0);
+        Movement();
+    }
+
+    void Movement()
+    {
         float distance = Vector3.Distance(target.position, transform.position);
 
         if (distance <= lookRadius)
@@ -36,6 +40,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    //Not needed
     void FlipSprite()
     {
         Vector3 direction = (target.position - transform.position).normalized;
@@ -47,13 +52,5 @@ public class EnemyController : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, lookRadius);
-    }
-
-    void DestroySprite(Collider other)
-    {
-        if (other.CompareTag(""))
-        {
-            Debug.Log("Enemy Destroyed");
-        }
     }
 }

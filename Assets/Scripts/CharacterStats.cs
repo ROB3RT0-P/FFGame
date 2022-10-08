@@ -65,16 +65,11 @@ public class CharacterStats : MonoBehaviour
     public virtual void NoHP()
     {
         Debug.Log("Player Died");
-        rb.constraints = RigidbodyConstraints.None;
+        rb.constraints = RigidbodyConstraints.FreezePosition;
+        rb.isKinematic = true;
+        rb.detectCollisions = false;
         animator.SetTrigger("NoHP");
-        StartCoroutine(waiter());
         SceneFadeOut(2);
-    }
-
-    IEnumerator waiter()
-    {
-        //Wait for 4 seconds
-        yield return new WaitForSeconds(4);
     }
 
     public void SceneFadeOut(int levelIndex)
