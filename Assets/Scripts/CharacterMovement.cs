@@ -5,42 +5,40 @@ using UnityEngine.SceneManagement;
 
 public class CharacterMovement : MonoBehaviour
 {
-    private CharacterController controller;
+    public Animator animatorScene;
+    public Animator animator;
     public AudioClip playerHitSound;
     AudioSource audioSource;
     Rigidbody rb;
-    public Animator animator;
-    public Animator animatorScene;
     private bool noHP = false;
     private int sceneToLoad;
-    private float speed = 8.0f;
     public int maxHealth = 100;
     public int currentHealth { get; private set; }
-    public float force = 10.0f;
     public Stat damage;
+    private float speed = 20.0f;
+    private float force = 40.0f;
     float xMin = -4f;
     float xMax = 115f;
     float zMin = -11f;
     float zMax = 3f;
+   
 
-    //Push back
-    float mass = 3.0f; // defines the character mass
-    Vector3 impact = Vector3.zero;
 
     private void Start()
     {
-        controller = gameObject.AddComponent<CharacterController>();
-        audioSource = GetComponent<AudioSource>();
+        rb = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>(); 
+        rb.isKinematic = true;
     }
 
-        void Awake()
+    void Awake()
     {
         currentHealth = maxHealth;
     }
 
     void FixedUpdate()
     {
-         if (!noHP)
+        if (!noHP)
         {
            Movement(); 
         }
@@ -54,52 +52,38 @@ public class CharacterMovement : MonoBehaviour
     
     void Movement()
     {
-        
         animator.SetFloat("Horizontal", Input.GetAxis("Horizontal"));
         animator.SetFloat("Vertical", Input.GetAxis("Vertical"));
 
-        Vector3 direction = new Vector3(Input.GetAxis("Horizontal"), 0,  Input.GetAxis("Vertical"));
-        
-        Vector3 pos = transform.position;
-        
-        /*
-        TODO: Implemant boundary collision with math.clamp
-
-        pos.x = Mathf.Clamp(pos.x + direction, -4, 115);
-        pos.y = Mathf.Clamp(pos.z + direction, -11, 3);
-        */
+        Vector3 direction = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
 
         //Check x axis & z axis boundaries        
-        if(pos.x < xMin){
-            pos.x = xMin;
+        if(transform.position.x < xMin){
+            transform.position = new Vector3(xMin, transform.position.y, transform.position.z);
             Debug.Log("xMin Boundary hit");
         }
-        else if(pos.x > xMax){
-            pos.x = xMax;
+        else if(transform.position.x > xMax){
+            transform.position = new Vector3(xMax, transform.position.y, transform.position.z);
             Debug.Log("xMax Boundary hit");
         }
-        else if(pos.z < zMin){
-            pos.z = zMin;
+        else if(transform.position.z < zMin){
+            transform.position = new Vector3(transform.position.x, transform.position.y, zMin);
             Debug.Log("zMin Boundary hit");
         }
-        else if(pos.z > zMax){
-            pos.z = zMax;
+        else if(transform.position.z > zMax){
+            transform.position = new Vector3(transform.position.x, transform.position.y, zMax);
             Debug.Log("zMax Boundary hit");
         }
-
-        //direction = pos;
-
-        controller.Move(direction * Time.deltaTime * speed);
-
+        
+        transform.position += direction * Time.deltaTime * speed;
     }
 
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy"))
         {
-            Debug.Log("Interactable");
+            //Debug.Log("Interactable");
             TakeDamage(1);
-            ApplyPushBack();
         }
     }
 
@@ -123,32 +107,17 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    public void PushBack(Vector3 dir, float force)
-    {
-        dir.Normalize();
-        if (dir.y < 0) 
-        {
-            dir.y = -dir.y;
-        }
-        impact += dir.normalized * force / mass;
-    }
-
-    public void ApplyPushBack()
-    {
-        if (impact.magnitude > 0.2) //Apply force
-           {
-                controller.Move(impact * Time.deltaTime);
-           }
-        impact = Vector3.Lerp(impact, Vector3.zero, 5*Time.deltaTime); //Negate force after
-    }
-
     public virtual void NoHP()
     {
         Debug.Log("Player Died");
         noHP = true;
+        rb.constraints = RigidbodyConstraints.FreezePosition;
+        rb.isKinematic = true;//not working
+        rb.detectCollisions = false;//not working
         animator.SetTrigger("NoHP");
         SceneFadeOut(2);
     }
+
 
     public void SceneFadeOut(int levelIndex)
     {
@@ -163,4 +132,15 @@ public class CharacterMovement : MonoBehaviour
         yield return new WaitForSeconds(1);
         SceneManager.LoadScene (sceneToChangeTo);
     }
+    /*
+    void OnCollisionEnter(Collision c)
+    {
+        if (c.gameObject.tag == "Enemy")
+        {
+            Vector3 dir = c.contacts[0].point - transform.position;
+            dir = -dir.normalized;
+            GetComponent<Rigidbody>().AddForce(dir * force);
+        }
+    } 
+    */   
 }
